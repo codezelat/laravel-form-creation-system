@@ -6,46 +6,97 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $form->title }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        .form-field {
+            transition: all 0.2s ease;
+        }
+        .form-field:hover {
+            transform: translateX(2px);
+        }
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen py-12">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <!-- Form Header -->
-            <div class="p-6 border-b border-gray-200 bg-{{ $form->color }}-50">
-                <h1 class="text-3xl font-bold text-gray-900">{{ $form->title }}</h1>
-                @if($form->description)
-                    <p class="mt-2 text-gray-600">{{ $form->description }}</p>
-                @endif
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-8 sm:py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Form Container -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+            <!-- Form Header with Brand -->
+            <div class="p-8 sm:p-10 border-b-4 border-{{ $form->color }}-500 bg-gradient-to-r from-{{ $form->color }}-50 to-white">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">{{ $form->title }}</h1>
+                        @if($form->description)
+                            <p class="mt-3 text-base text-gray-600 leading-relaxed">{{ $form->description }}</p>
+                        @endif
+                    </div>
+                    <!-- Optional Form Icon -->
+                    <div class="hidden sm:block ml-4">
+                        <div class="w-16 h-16 rounded-full bg-{{ $form->color }}-100 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-{{ $form->color }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-4 text-sm text-gray-500 flex items-center">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    All fields marked with <span class="text-red-500 font-bold mx-1">*</span> are required
+                </p>
             </div>
 
             <!-- Success Message -->
-            <div id="success-message" class="hidden p-6 bg-green-50 border-b border-green-200">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span class="text-green-800 font-medium">Form submitted successfully! Thank you for your response.</span>
+            <div id="success-message" class="hidden mx-8 mt-6 p-5 bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 rounded-lg shadow-sm">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-bold text-green-900">Success!</h3>
+                        <p class="mt-1 text-sm text-green-800">Form submitted successfully! Thank you for your response.</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Error Message -->
-            <div id="error-message" class="hidden p-6 bg-red-50 border-b border-red-200">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    <span class="text-red-800 font-medium" id="error-text"></span>
+            <div id="error-message" class="hidden mx-8 mt-6 p-5 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 rounded-lg shadow-sm">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-bold text-red-900">Error</h3>
+                        <p class="mt-1 text-sm text-red-800" id="error-text"></p>
+                    </div>
                 </div>
             </div>
 
             <!-- Form Fields -->
-            <form id="submission-form" class="p-6 space-y-6" enctype="multipart/form-data">
+            <form id="submission-form" class="p-8 sm:p-10 space-y-8" enctype="multipart/form-data">
                 @foreach($form->fields as $field)
-                    <div class="form-field">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <div class="form-field bg-gray-50 p-6 rounded-lg border border-gray-200 hover:border-{{ $form->color }}-300 transition-all">
+                        <label class="block text-base font-semibold text-gray-800 mb-3">
                             {{ $field->label }}
                             @if($field->required)
-                                <span class="text-red-500">*</span>
+                                <span class="text-red-500 ml-1">*</span>
                             @endif
                         </label>
 
@@ -56,22 +107,24 @@
                             @case('date')
                                 <input type="{{ $field->type }}" 
                                        name="field_{{ $field->id }}" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500"
+                                       class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500 focus:border-transparent transition-all shadow-sm"
+                                       placeholder="Enter your {{ strtolower($field->label) }}"
                                        {{ $field->required ? 'required' : '' }}>
                                 @break
 
                             @case('textarea')
                                 <textarea name="field_{{ $field->id }}" 
-                                          rows="4" 
-                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500"
+                                          rows="5" 
+                                          class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500 focus:border-transparent transition-all shadow-sm resize-y"
+                                          placeholder="Enter your {{ strtolower($field->label) }}"
                                           {{ $field->required ? 'required' : '' }}></textarea>
                                 @break
 
                             @case('select')
                                 <select name="field_{{ $field->id }}" 
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500"
+                                        class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500 focus:border-transparent transition-all shadow-sm"
                                         {{ $field->required ? 'required' : '' }}>
-                                    <option value="">Choose an option</option>
+                                    <option value="">-- Select an option --</option>
                                     @foreach($field->options as $option)
                                         <option value="{{ $option }}">{{ $option }}</option>
                                     @endforeach
@@ -79,49 +132,54 @@
                                 @break
 
                             @case('radio')
-                                <div class="space-y-2">
+                                <div class="space-y-3 bg-white p-4 rounded-lg border border-gray-200">
                                     @foreach($field->options as $option)
-                                        <label class="flex items-center space-x-2">
+                                        <label class="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
                                             <input type="radio" 
                                                    name="field_{{ $field->id }}" 
                                                    value="{{ $option }}"
-                                                   class="text-{{ $form->color }}-600 focus:ring-{{ $form->color }}-500"
+                                                   class="w-5 h-5 text-{{ $form->color }}-600 focus:ring-{{ $form->color }}-500 focus:ring-2"
                                                    {{ $field->required ? 'required' : '' }}>
-                                            <span class="text-gray-700">{{ $option }}</span>
+                                            <span class="text-gray-800 font-medium">{{ $option }}</span>
                                         </label>
                                     @endforeach
                                 </div>
                                 @break
 
                             @case('checkbox')
-                                <div class="space-y-2">
+                                <div class="space-y-3 bg-white p-4 rounded-lg border border-gray-200">
                                     @foreach($field->options as $index => $option)
-                                        <label class="flex items-center space-x-2">
+                                        <label class="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors">
                                             <input type="checkbox" 
                                                    name="field_{{ $field->id }}[]" 
                                                    value="{{ $option }}"
-                                                   class="text-{{ $form->color }}-600 focus:ring-{{ $form->color }}-500">
-                                            <span class="text-gray-700">{{ $option }}</span>
+                                                   class="w-5 h-5 text-{{ $form->color }}-600 focus:ring-{{ $form->color }}-500 focus:ring-2 rounded">
+                                            <span class="text-gray-800 font-medium">{{ $option }}</span>
                                         </label>
                                     @endforeach
                                 </div>
                                 @break
 
                             @case('file')
-                                <input type="file" 
-                                       name="field_{{ $field->id }}" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500"
-                                       @if($field->file_settings && isset($field->file_settings['accepted_types']))
-                                           accept="{{ $field->file_settings['accepted_types'] }}"
-                                       @endif
-                                       {{ $field->required ? 'required' : '' }}>
+                                <div class="relative">
+                                    <input type="file" 
+                                           name="field_{{ $field->id }}" 
+                                           class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500 focus:border-transparent transition-all shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-{{ $form->color }}-50 file:text-{{ $form->color }}-700 hover:file:bg-{{ $form->color }}-100"
+                                           @if($field->file_settings && isset($field->file_settings['accepted_types']))
+                                               accept="{{ $field->file_settings['accepted_types'] }}"
+                                           @endif
+                                           {{ $field->required ? 'required' : '' }}>
+                                </div>
                                 @if($field->file_settings)
-                                    <p class="mt-1 text-xs text-gray-500">
+                                    <p class="mt-2 text-xs text-gray-500 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
                                         @if(isset($field->file_settings['accepted_types']))
-                                            Accepted: {{ $field->file_settings['accepted_types'] }}
+                                            Accepted types: <strong class="ml-1">{{ $field->file_settings['accepted_types'] }}</strong>
                                         @endif
                                         @if(isset($field->file_settings['max_size']))
-                                            | Max size: {{ $field->file_settings['max_size'] }}MB
+                                            <span class="mx-2">•</span> Max size: <strong class="ml-1">{{ $field->file_settings['max_size'] }}MB</strong>
                                         @endif
                                     </p>
                                 @endif
@@ -130,20 +188,35 @@
                     </div>
                 @endforeach
 
-                <div class="pt-4">
+                <!-- Submit Button Section -->
+                <div class="pt-6 border-t-2 border-gray-200">
                     <button type="submit" 
                             id="submit-btn"
-                            class="w-full bg-{{ $form->color }}-600 hover:bg-{{ $form->color }}-700 text-white px-6 py-3 rounded-md font-medium transition">
-                        Submit
+                            class="w-full bg-gradient-to-r from-{{ $form->color }}-600 to-{{ $form->color }}-700 hover:from-{{ $form->color }}-700 hover:to-{{ $form->color }}-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span id="submit-btn-text">Submit Form</span>
+                        <span id="submit-spinner" class="hidden loading-spinner"></span>
                     </button>
+                    <p class="mt-4 text-center text-sm text-gray-500">
+                        Your response will be recorded securely
+                    </p>
                 </div>
             </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center text-sm text-gray-500">
+            <p>Powered by Form Creation System</p>
         </div>
     </div>
 
     <script>
         const form = document.getElementById('submission-form');
         const submitBtn = document.getElementById('submit-btn');
+        const submitBtnText = document.getElementById('submit-btn-text');
+        const submitSpinner = document.getElementById('submit-spinner');
         const successMessage = document.getElementById('success-message');
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
@@ -151,10 +224,11 @@
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // Disable submit button
+            // Disable submit button and show loading state
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            submitBtnText.textContent = 'Submitting...';
+            submitSpinner.classList.remove('hidden');
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             // Hide previous messages
             successMessage.classList.add('hidden');
@@ -177,8 +251,20 @@
                     successMessage.classList.remove('hidden');
                     form.reset();
                     
-                    // Scroll to success message
-                    successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Scroll to top to show success message
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    
+                    // Update button to show success
+                    submitBtnText.textContent = 'Submitted Successfully!';
+                    submitBtn.classList.remove('opacity-75');
+                    submitBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        submitBtn.disabled = false;
+                        submitBtnText.textContent = 'Submit Form';
+                        submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'cursor-not-allowed');
+                    }, 3000);
                 } else {
                     throw new Error(data.message || 'Submission failed');
                 }
@@ -187,13 +273,16 @@
                 errorText.textContent = error.message || 'Failed to submit form. Please try again.';
                 errorMessage.classList.remove('hidden');
                 
-                // Scroll to error message
-                errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } finally {
+                // Scroll to top to show error message
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
                 // Re-enable submit button
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit';
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtnText.textContent = 'Submit Form';
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            } finally {
+                // Hide spinner
+                submitSpinner.classList.add('hidden');
             }
         });
     </script>
