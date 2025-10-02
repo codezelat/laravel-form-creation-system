@@ -226,6 +226,15 @@
             });
 
             // Color theme handlers
+            const colorClasses = {
+                blue: { header: 'p-6 border-b border-gray-200 bg-blue-50', ring: 'ring-blue-500' },
+                green: { header: 'p-6 border-b border-gray-200 bg-green-50', ring: 'ring-green-500' },
+                purple: { header: 'p-6 border-b border-gray-200 bg-purple-50', ring: 'ring-purple-500' },
+                red: { header: 'p-6 border-b border-gray-200 bg-red-50', ring: 'ring-red-500' },
+                yellow: { header: 'p-6 border-b border-gray-200 bg-yellow-50', ring: 'ring-yellow-500' },
+                indigo: { header: 'p-6 border-b border-gray-200 bg-indigo-50', ring: 'ring-indigo-500' }
+            };
+
             document.querySelectorAll('[data-color]').forEach(button => {
                 button.addEventListener('click', function() {
                     const color = this.dataset.color;
@@ -234,12 +243,15 @@
                     // Update active color
                     document.querySelectorAll('[data-color]').forEach(btn => {
                         btn.classList.remove('ring-2', 'ring-offset-2');
-                        btn.classList.remove(`ring-${btn.dataset.color}-500`);
+                        // Remove all possible ring colors
+                        Object.values(colorClasses).forEach(colorClass => {
+                            btn.classList.remove(colorClass.ring);
+                        });
                     });
-                    this.classList.add('ring-2', 'ring-offset-2', `ring-${color}-500`);
+                    this.classList.add('ring-2', 'ring-offset-2', colorClasses[color].ring);
                     
                     // Update form header color
-                    formHeader.className = `p-6 border-b border-gray-200 bg-${color}-50`;
+                    formHeader.className = colorClasses[color].header;
                     
                     autoSave();
                 });
