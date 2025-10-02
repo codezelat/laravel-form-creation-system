@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\FormController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,5 +19,15 @@ Route::prefix('hidden-admin')->group(function () {
         Route::get('/dashboard', [AdminAuthController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/forms/create', [AdminAuthController::class, 'createForm'])->name('admin.forms.create');
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+        
+        // Form management routes (admin only)
+        Route::post('/forms/store', [FormController::class, 'store'])->name('admin.forms.store');
+        Route::post('/forms/{id}/publish', [FormController::class, 'publish'])->name('admin.forms.publish');
+        Route::post('/forms/{id}/unpublish', [FormController::class, 'unpublish'])->name('admin.forms.unpublish');
+        Route::delete('/forms/{id}', [FormController::class, 'destroy'])->name('admin.forms.destroy');
     });
 });
+
+// Public form routes
+Route::get('/form/{slug}', [FormController::class, 'show'])->name('form.show');
+Route::post('/form/{slug}/submit', [FormController::class, 'submit'])->name('form.submit');

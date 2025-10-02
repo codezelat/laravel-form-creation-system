@@ -203,11 +203,38 @@
                 autoSaveStatus.textContent = 'Saving...';
                 autoSaveStatus.className = 'text-sm text-yellow-500';
                 
-                autoSaveTimeout = setTimeout(() => {
-                    // Here you would send the data to the server
-                    console.log('Auto-saving form data:', formData);
-                    autoSaveStatus.textContent = 'Changes saved';
-                    autoSaveStatus.className = 'text-sm text-green-500';
+                autoSaveTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch('{{ route('admin.forms.store') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                id: formData.id,
+                                title: formData.title,
+                                description: formData.description,
+                                color: formData.color,
+                                fields: formData.fields
+                            })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // Store form ID for future updates
+                            formData.id = data.form_id;
+                            autoSaveStatus.textContent = 'Changes saved';
+                            autoSaveStatus.className = 'text-sm text-green-500';
+                        } else {
+                            throw new Error(data.message || 'Failed to save');
+                        }
+                    } catch (error) {
+                        console.error('Auto-save error:', error);
+                        autoSaveStatus.textContent = 'Failed to save';
+                        autoSaveStatus.className = 'text-sm text-red-500';
+                    }
                 }, 1000);
             }
 
@@ -647,6 +674,47 @@
                     </button>
                 `;
             }
+
+            // Publish button handler
+            const publishBtn = document.getElementById('publish-btn');
+            publishBtn.addEventListener('click', async function() {
+                if (!formData.id) {
+                    alert('Please save the form before publishing.');
+                    return;
+                }
+
+                // Show publish modal
+                const customSlug = prompt('Enter a custom URL slug (leave empty to auto-generate):', '');
+                const visibility = confirm('Make this form public?\n\nOK = Public (anyone can submit)\nCancel = Only Me (private)') ? 'public' : 'only_me';
+
+                try {
+                    const response = await fetch(`/hidden-admin/forms/${formData.id}/publish`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            slug: customSlug || null,
+                            visibility: visibility
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alert(`Form published successfully!\n\nForm URL: ${data.url}\n\nYou can share this URL with others.`);
+                        publishBtn.textContent = 'Published';
+                        publishBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                        publishBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    } else {
+                        alert('Failed to publish form: ' + (data.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Publish error:', error);
+                    alert('Failed to publish form. Please try again.');
+                }
+            });
         });
     </script>
 </body>
