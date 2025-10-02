@@ -121,6 +121,19 @@ class FormController extends Controller
     }
 
     /**
+     * Get form data for editing
+     */
+    public function getFormData($id)
+    {
+        $form = Form::with('fields')->findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'form' => $form
+        ]);
+    }
+
+    /**
      * Show public form
      */
     public function show($slug)

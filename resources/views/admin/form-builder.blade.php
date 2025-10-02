@@ -292,7 +292,7 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             let formData = {
                 title: 'Untitled Form',
                 description: '',
@@ -301,6 +301,51 @@
             };
             let fieldCounter = 0;
             let autoSaveTimeout;
+            let isEditMode = false;
+
+            // Check if we're in edit mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const editFormId = urlParams.get('edit');
+            
+            if (editFormId) {
+                isEditMode = true;
+                try {
+                    const response = await fetch(`/hidden-admin/forms/${editFormId}/data`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        formData = {
+                            id: data.form.id,
+                            title: data.form.title,
+                            description: data.form.description,
+                            color: data.form.color,
+                            fields: data.form.fields
+                        };
+                        
+                        // Update UI with loaded data
+                        document.getElementById('form-title').value = formData.title;
+                        document.getElementById('form-description').value = formData.description;
+                        document.getElementById('form-title-display').textContent = formData.title;
+                        document.getElementById('form-description-display').textContent = formData.description;
+                        
+                        // Set color
+                        document.querySelectorAll('input[name="color"]').forEach(radio => {
+                            if (radio.value === formData.color) {
+                                radio.checked = true;
+                                radio.dispatchEvent(new Event('change'));
+                            }
+                        });
+                        
+                        // Load fields
+                        fieldCounter = 0;
+                        data.form.fields.forEach(field => {
+                            addFieldToForm(field);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading form:', error);
+                }
+            }
 
             // Form settings handlers
             const formTitle = document.getElementById('form-title');
@@ -520,6 +565,22 @@
                 if (typeof initializeSortable === 'function') {
                     initializeSortable();
                 }
+            }
+
+            function addFieldToForm(existingField) {
+                fieldCounter++;
+                const field = {
+                    id: fieldCounter,
+                    type: existingField.type,
+                    label: existingField.label,
+                    required: existingField.required || false,
+                    options: existingField.options || null,
+                    fileSettings: existingField.file_settings || existingField.fileSettings || null,
+                    order: existingField.order || fieldCounter
+                };
+
+                formData.fields.push(field);
+                renderField(field);
             }
 
             function createFieldHTML(field) {

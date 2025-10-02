@@ -25,6 +25,7 @@ Route::prefix('hidden-admin')->group(function () {
         
         // Form management routes (admin only)
         Route::post('/forms/store', [FormController::class, 'store'])->name('admin.forms.store');
+        Route::get('/forms/{id}/data', [FormController::class, 'getFormData'])->name('admin.forms.data');
         Route::post('/forms/{id}/publish', [FormController::class, 'publish'])->name('admin.forms.publish');
         Route::post('/forms/{id}/unpublish', [FormController::class, 'unpublish'])->name('admin.forms.unpublish');
         Route::delete('/forms/{id}', [FormController::class, 'destroy'])->name('admin.forms.destroy');
