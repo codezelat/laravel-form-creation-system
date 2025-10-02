@@ -26,6 +26,9 @@
                     <button id="preview-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-medium transition">
                         Preview
                     </button>
+                    <button id="settings-btn" class="hidden bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm font-medium transition">
+                        Form Settings
+                    </button>
                     <button id="publish-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition">
                         Publish Form
                     </button>
@@ -160,7 +163,7 @@
     </div>
 
     <!-- Form Preview Modal -->
-    <div id="preview-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div id="preview-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 transition-opacity">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
                 <div class="p-6 border-b border-gray-200 flex justify-between items-center">
@@ -175,6 +178,116 @@
                     <!-- Preview content will be generated here -->
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Publish Modal -->
+    <div id="publish-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 transition-opacity">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-900">Publish Form</h3>
+                    <p class="text-sm text-gray-500 mt-1">Configure your form settings before publishing</p>
+                </div>
+                <div class="p-6 space-y-6">
+                    <!-- Custom Slug -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Custom URL Slug (Optional)
+                        </label>
+                        <input type="text" id="custom-slug" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="my-custom-form">
+                        <p class="mt-1 text-xs text-gray-500">Leave empty to auto-generate</p>
+                    </div>
+                    
+                    <!-- Visibility -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            Form Visibility
+                        </label>
+                        <div class="space-y-3">
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                                <input type="radio" name="visibility" value="public" checked
+                                       class="mt-1 text-blue-600 focus:ring-blue-500">
+                                <div class="ml-3">
+                                    <div class="font-medium text-gray-900">Public</div>
+                                    <div class="text-sm text-gray-500">Anyone with the link can submit</div>
+                                </div>
+                            </label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                                <input type="radio" name="visibility" value="only_me"
+                                       class="mt-1 text-blue-600 focus:ring-blue-500">
+                                <div class="ml-3">
+                                    <div class="font-medium text-gray-900">Private (Only Me)</div>
+                                    <div class="text-sm text-gray-500">Only you can submit responses</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 bg-gray-50 rounded-b-xl flex justify-end space-x-3">
+                    <button id="cancel-publish" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button id="confirm-publish" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                        Publish Form
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                <div class="p-8 text-center">
+                    <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Form Published!</h3>
+                    <p class="text-gray-600 mb-6" id="success-message-text">Your form is now live and ready to accept responses.</p>
+                    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                        <p class="text-sm text-gray-600 mb-2">Share this URL:</p>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="form-url" readonly
+                                   class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded text-sm">
+                            <button id="copy-url" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <button id="view-form" class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+                            View Published Form
+                        </button>
+                        <button id="close-success" class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="error-toast" class="fixed top-4 right-4 hidden z-50 transition-all transform translate-x-full">
+        <div class="bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-start max-w-md">
+            <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <p class="font-medium">Error</p>
+                <p class="text-sm" id="error-toast-message"></p>
+            </div>
+            <button id="close-error-toast" class="ml-4 text-white hover:text-gray-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
     </div>
 
@@ -205,6 +318,19 @@
                 
                 autoSaveTimeout = setTimeout(async () => {
                     try {
+                        // Validate before saving
+                        if (!formData.title || formData.title.trim() === '') {
+                            autoSaveStatus.textContent = 'Title required';
+                            autoSaveStatus.className = 'text-sm text-red-500';
+                            return;
+                        }
+                        
+                        if (formData.fields.length === 0) {
+                            autoSaveStatus.textContent = 'Add at least one field';
+                            autoSaveStatus.className = 'text-sm text-orange-500';
+                            return;
+                        }
+                        
                         const response = await fetch('{{ route('admin.forms.store') }}', {
                             method: 'POST',
                             headers: {
@@ -220,20 +346,34 @@
                             })
                         });
 
+                        if (!response.ok) {
+                            if (response.status === 422) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.message || 'Validation error');
+                            } else {
+                                throw new Error('Server error');
+                            }
+                        }
+
                         const data = await response.json();
                         
                         if (data.success) {
                             // Store form ID for future updates
                             formData.id = data.form_id;
-                            autoSaveStatus.textContent = 'Changes saved';
+                            autoSaveStatus.textContent = 'Changes saved ✓';
                             autoSaveStatus.className = 'text-sm text-green-500';
                         } else {
                             throw new Error(data.message || 'Failed to save');
                         }
                     } catch (error) {
                         console.error('Auto-save error:', error);
-                        autoSaveStatus.textContent = 'Failed to save';
+                        autoSaveStatus.textContent = 'Failed to save - ' + (error.message || 'Try again');
                         autoSaveStatus.className = 'text-sm text-red-500';
+                        
+                        // Show error toast for critical errors
+                        if (error.message && error.message !== 'Failed to save') {
+                            showError(error.message);
+                        }
                     }
                 }, 1000);
             }
@@ -675,18 +815,50 @@
                 `;
             }
 
+            // Modal helpers
+            function showModal(modalId) {
+                document.getElementById(modalId).classList.remove('hidden');
+            }
+            
+            function hideModal(modalId) {
+                document.getElementById(modalId).classList.add('hidden');
+            }
+            
+            function showError(message) {
+                const errorToast = document.getElementById('error-toast');
+                const errorMessage = document.getElementById('error-toast-message');
+                errorMessage.textContent = message;
+                errorToast.classList.remove('hidden', 'translate-x-full');
+                setTimeout(() => {
+                    errorToast.classList.add('translate-x-full');
+                    setTimeout(() => errorToast.classList.add('hidden'), 300);
+                }, 5000);
+            }
+
             // Publish button handler
             const publishBtn = document.getElementById('publish-btn');
-            publishBtn.addEventListener('click', async function() {
+            const publishModal = document.getElementById('publish-modal');
+            const cancelPublish = document.getElementById('cancel-publish');
+            const confirmPublish = document.getElementById('confirm-publish');
+            
+            publishBtn.addEventListener('click', function() {
                 if (!formData.id) {
-                    alert('Please save the form before publishing.');
+                    showError('Please save the form before publishing. Add at least one field and wait for auto-save.');
                     return;
                 }
-
-                // Show publish modal
-                const customSlug = prompt('Enter a custom URL slug (leave empty to auto-generate):', '');
-                const visibility = confirm('Make this form public?\n\nOK = Public (anyone can submit)\nCancel = Only Me (private)') ? 'public' : 'only_me';
-
+                showModal('publish-modal');
+            });
+            
+            cancelPublish.addEventListener('click', () => hideModal('publish-modal'));
+            
+            confirmPublish.addEventListener('click', async function() {
+                const customSlug = document.getElementById('custom-slug').value.trim();
+                const visibility = document.querySelector('input[name="visibility"]:checked').value;
+                
+                // Disable button
+                confirmPublish.disabled = true;
+                confirmPublish.textContent = 'Publishing...';
+                
                 try {
                     const response = await fetch(`/hidden-admin/forms/${formData.id}/publish`, {
                         method: 'POST',
@@ -703,17 +875,63 @@
                     const data = await response.json();
                     
                     if (data.success) {
-                        alert(`Form published successfully!\n\nForm URL: ${data.url}\n\nYou can share this URL with others.`);
-                        publishBtn.textContent = 'Published';
+                        hideModal('publish-modal');
+                        
+                        // Store form URL and slug
+                        formData.url = window.location.origin + data.url;
+                        formData.slug = data.slug;
+                        formData.published = true;
+                        
+                        // Show success modal with URL
+                        document.getElementById('form-url').value = formData.url;
+                        showModal('success-modal');
+                        
+                        // Update publish button
+                        publishBtn.textContent = 'Published ✓';
                         publishBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
                         publishBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                        
+                        // Show settings button
+                        const settingsBtn = document.getElementById('settings-btn');
+                        settingsBtn.classList.remove('hidden');
+                        settingsBtn.addEventListener('click', function() {
+                            showModal('publish-modal');
+                            // Pre-fill with current values
+                            document.getElementById('custom-slug').value = formData.slug || '';
+                        });
                     } else {
-                        alert('Failed to publish form: ' + (data.message || 'Unknown error'));
+                        showError(data.message || 'Failed to publish form. Please try again.');
                     }
                 } catch (error) {
                     console.error('Publish error:', error);
-                    alert('Failed to publish form. Please try again.');
+                    showError('Failed to publish form. Please check your connection and try again.');
+                } finally {
+                    confirmPublish.disabled = false;
+                    confirmPublish.textContent = 'Publish Form';
                 }
+            });
+            
+            // Success modal handlers
+            document.getElementById('close-success').addEventListener('click', () => hideModal('success-modal'));
+            
+            document.getElementById('view-form').addEventListener('click', function() {
+                const formUrl = document.getElementById('form-url').value;
+                window.open(formUrl, '_blank');
+            });
+            
+            document.getElementById('copy-url').addEventListener('click', function() {
+                const urlInput = document.getElementById('form-url');
+                urlInput.select();
+                document.execCommand('copy');
+                this.textContent = 'Copied!';
+                setTimeout(() => this.textContent = 'Copy', 2000);
+            });
+            
+            // Error toast close
+            document.getElementById('close-error-toast').addEventListener('click', function() {
+                const errorToast = document.getElementById('error-toast');
+                errorToast.classList.add('translate-x-full');
+                setTimeout(() => errorToast.classList.add('hidden'), 300);
             });
         });
     </script>

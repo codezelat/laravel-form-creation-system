@@ -13,7 +13,7 @@
         .form-field:hover {
             transform: translateX(2px);
         }
-        .loading-spinner {
+        .loading-spinner:not(.hidden) {
             border: 2px solid #f3f3f3;
             border-top: 2px solid #3498db;
             border-radius: 50%;
@@ -245,6 +245,20 @@
                     body: formData
                 });
 
+                // Check if response is OK
+                if (!response.ok) {
+                    if (response.status === 422) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Please check your form inputs and try again.');
+                    } else if (response.status === 403) {
+                        throw new Error('This form is not accepting submissions at this time.');
+                    } else if (response.status === 404) {
+                        throw new Error('Form not found. This link may be invalid.');
+                    } else {
+                        throw new Error('Server error. Please try again later.');
+                    }
+                }
+
                 const data = await response.json();
 
                 if (data.success) {
@@ -259,18 +273,28 @@
                     submitBtn.classList.remove('opacity-75');
                     submitBtn.classList.add('bg-green-600', 'hover:bg-green-700');
                     
-                    // Reset button after 3 seconds
+                    // Reset button after 5 seconds
                     setTimeout(() => {
                         submitBtn.disabled = false;
                         submitBtnText.textContent = 'Submit Form';
                         submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'cursor-not-allowed');
-                    }, 3000);
+                        successMessage.classList.add('hidden');
+                    }, 5000);
                 } else {
-                    throw new Error(data.message || 'Submission failed');
+                    throw new Error(data.message || 'Submission failed. Please try again.');
                 }
             } catch (error) {
                 console.error('Submission error:', error);
-                errorText.textContent = error.message || 'Failed to submit form. Please try again.';
+                
+                // Show specific error message
+                let errorMsg = 'Failed to submit form. Please try again.';
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMsg = 'Network error. Please check your internet connection and try again.';
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+                
+                errorText.textContent = errorMsg;
                 errorMessage.classList.remove('hidden');
                 
                 // Scroll to top to show error message
@@ -280,6 +304,11 @@
                 submitBtn.disabled = false;
                 submitBtnText.textContent = 'Submit Form';
                 submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                
+                // Auto-hide error after 8 seconds
+                setTimeout(() => {
+                    errorMessage.classList.add('hidden');
+                }, 8000);
             } finally {
                 // Hide spinner
                 submitSpinner.classList.add('hidden');
