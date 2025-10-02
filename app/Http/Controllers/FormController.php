@@ -85,7 +85,7 @@ class FormController extends Controller
     {
         $request->validate([
             'slug' => 'nullable|string|max:255|unique:forms,slug,' . $id,
-            'visibility' => 'required|in:public,only_me',
+            'form_status' => 'required|in:active,inactive',
         ]);
 
         $form = Form::findOrFail($id);
@@ -96,7 +96,7 @@ class FormController extends Controller
         $form->update([
             'status' => 'published',
             'slug' => $slug,
-            'visibility' => $request->visibility,
+            'form_status' => $request->form_status,
         ]);
 
         return response()->json([
@@ -130,8 +130,8 @@ class FormController extends Controller
             ->with('fields')
             ->firstOrFail();
 
-        // Check if form is private and user is not admin
-        if ($form->visibility === 'only_me' && !session('admin_authenticated')) {
+                // Check if form is accessible (not inactive unless admin)
+        if ($form->form_status === 'inactive' && !session()->has('admin_logged_in')) {
             return view('form.locked');
         }
 
@@ -149,7 +149,7 @@ class FormController extends Controller
             ->firstOrFail();
 
         // Check if form accepts submissions
-        if ($form->visibility === 'only_me' && !session('admin_authenticated')) {
+        if ($form->form_status === 'inactive' && !session('admin_authenticated')) {
             return response()->json([
                 'success' => false,
                 'message' => 'This form is not accepting submissions.',

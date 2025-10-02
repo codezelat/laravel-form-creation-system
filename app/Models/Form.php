@@ -14,7 +14,7 @@ class Form extends Model
         'color',
         'slug',
         'status',
-        'visibility',
+        'form_status',
         'settings'
     ];
 

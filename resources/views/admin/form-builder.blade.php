@@ -201,26 +201,26 @@
                         <p class="mt-1 text-xs text-gray-500">Leave empty to auto-generate</p>
                     </div>
                     
-                    <!-- Visibility -->
+                    <!-- Form Status -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-3">
-                            Form Visibility
+                            Form Status
                         </label>
                         <div class="space-y-3">
                             <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
-                                <input type="radio" name="visibility" value="public" checked
+                                <input type="radio" name="form_status" value="active" checked
                                        class="mt-1 text-blue-600 focus:ring-blue-500">
                                 <div class="ml-3">
-                                    <div class="font-medium text-gray-900">Public</div>
+                                    <div class="font-medium text-gray-900">Active</div>
                                     <div class="text-sm text-gray-500">Anyone with the link can submit</div>
                                 </div>
                             </label>
                             <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 transition">
-                                <input type="radio" name="visibility" value="only_me"
+                                <input type="radio" name="form_status" value="inactive"
                                        class="mt-1 text-blue-600 focus:ring-blue-500">
                                 <div class="ml-3">
-                                    <div class="font-medium text-gray-900">Private (Only Me)</div>
-                                    <div class="text-sm text-gray-500">Only you can submit responses</div>
+                                    <div class="font-medium text-gray-900">Inactive</div>
+                                    <div class="text-sm text-gray-500">Form is not accepting submissions</div>
                                 </div>
                             </label>
                         </div>
@@ -853,7 +853,7 @@
             
             confirmPublish.addEventListener('click', async function() {
                 const customSlug = document.getElementById('custom-slug').value.trim();
-                const visibility = document.querySelector('input[name="visibility"]:checked').value;
+                const formStatus = document.querySelector('input[name="form_status"]:checked').value;
                 
                 // Disable button
                 confirmPublish.disabled = true;
@@ -868,7 +868,7 @@
                         },
                         body: JSON.stringify({
                             slug: customSlug || null,
-                            visibility: visibility
+                            form_status: formStatus
                         })
                     });
 
