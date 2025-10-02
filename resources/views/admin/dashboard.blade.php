@@ -97,7 +97,7 @@
                 <div class="border-t pt-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button class="flex items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition duration-150 ease-in-out">
+                        <a href="{{ route('admin.forms.create') }}" class="flex items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition duration-150 ease-in-out">
                             <div class="flex-shrink-0">
                                 <div class="w-10 h-10 bg-blue-500 rounded-md flex items-center justify-center">
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,7 +109,7 @@
                                 <h4 class="text-sm font-medium text-gray-900">Create New Form</h4>
                                 <p class="text-sm text-gray-500">Build a new form from scratch</p>
                             </div>
-                        </button>
+                        </a>
 
                         <button class="flex items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition duration-150 ease-in-out">
                             <div class="flex-shrink-0">

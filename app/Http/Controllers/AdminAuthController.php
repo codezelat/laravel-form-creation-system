@@ -71,4 +71,13 @@ class AdminAuthController extends Controller
         $adminUsername = Session::get('admin_username');
         return view('admin.dashboard', compact('adminUsername'));
     }
+
+    /**
+     * Show form builder
+     */
+    public function createForm()
+    {
+        $adminUsername = Session::get('admin_username');
+        return view('admin.form-builder', compact('adminUsername'));
+    }
 }
