@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use App\Models\Form;
+use App\Models\FormSubmission;
 
 class AdminAuthController extends Controller
 {
@@ -69,7 +71,14 @@ class AdminAuthController extends Controller
     public function dashboard()
     {
         $adminUsername = Session::get('admin_username');
-        return view('admin.dashboard', compact('adminUsername'));
+        
+        // Get real analytics data
+        $totalForms = \App\Models\Form::count();
+        $activeForms = \App\Models\Form::where('status', 'published')->count();
+        $totalSubmissions = \App\Models\FormSubmission::count();
+        $recentForms = \App\Models\Form::latest()->take(5)->get();
+        
+        return view('admin.dashboard', compact('adminUsername', 'totalForms', 'activeForms', 'totalSubmissions', 'recentForms'));
     }
 
     /**
@@ -79,5 +88,60 @@ class AdminAuthController extends Controller
     {
         $adminUsername = Session::get('admin_username');
         return view('admin.form-builder', compact('adminUsername'));
+    }
+    
+    /**
+     * Show all forms with pagination and search
+     */
+    public function index(Request $request)
+    {
+        $adminUsername = Session::get('admin_username');
+        $search = $request->get('search');
+        
+        $forms = Form::withCount('submissions')
+            ->when($search, function($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10);
+            
+        return view('admin.forms.index', compact('adminUsername', 'forms', 'search'));
+    }
+    
+    /**
+     * Show form analytics and submissions
+     */
+    public function showAnalytics(Request $request, $id)
+    {
+        $adminUsername = Session::get('admin_username');
+        $form = Form::with('fields')->findOrFail($id);
+        $search = $request->get('search');
+        
+        $submissions = FormSubmission::where('form_id', $id)
+            ->when($search, function($query) use ($search) {
+                $query->where('submission_data', 'like', "%{$search}%")
+                      ->orWhere('ip_address', 'like', "%{$search}%");
+            })
+            ->latest('submitted_at')
+            ->paginate(10);
+            
+        $totalSubmissions = $form->submissions()->count();
+        $todaySubmissions = $form->submissions()->whereDate('submitted_at', today())->count();
+        $weekSubmissions = $form->submissions()->where('submitted_at', '>=', now()->subWeek())->count();
+        
+        return view('admin.forms.analytics', compact('adminUsername', 'form', 'submissions', 'search', 'totalSubmissions', 'todaySubmissions', 'weekSubmissions'));
+    }
+    
+    /**
+     * Show individual submission
+     */
+    public function showSubmission($formId, $submissionId)
+    {
+        $adminUsername = Session::get('admin_username');
+        $form = Form::with('fields')->findOrFail($formId);
+        $submission = FormSubmission::findOrFail($submissionId);
+        
+        return view('admin.forms.submission-detail', compact('adminUsername', 'form', 'submission'));
     }
 }

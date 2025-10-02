@@ -17,7 +17,10 @@ Route::prefix('hidden-admin')->group(function () {
     // Protected admin routes (require authentication)
     Route::middleware('admin.auth')->group(function () {
         Route::get('/dashboard', [AdminAuthController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/forms', [AdminAuthController::class, 'index'])->name('admin.forms.index');
         Route::get('/forms/create', [AdminAuthController::class, 'createForm'])->name('admin.forms.create');
+        Route::get('/forms/{id}/analytics', [AdminAuthController::class, 'showAnalytics'])->name('admin.forms.analytics');
+        Route::get('/forms/{formId}/submissions/{submissionId}', [AdminAuthController::class, 'showSubmission'])->name('admin.forms.submission');
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
         
         // Form management routes (admin only)

@@ -55,7 +55,7 @@
                             </div>
                             <div class="ml-4">
                                 <h3 class="text-lg font-medium text-gray-900">Total Forms</h3>
-                                <p class="text-2xl font-bold text-blue-600">0</p>
+                                <p class="text-2xl font-bold text-blue-600">{{ $totalForms }}</p>
                             </div>
                         </div>
                     </div>
@@ -65,13 +65,13 @@
                             <div class="flex-shrink-0">
                                 <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
                                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                 </div>
                             </div>
                             <div class="ml-4">
                                 <h3 class="text-lg font-medium text-gray-900">Active Forms</h3>
-                                <p class="text-2xl font-bold text-green-600">0</p>
+                                <p class="text-2xl font-bold text-green-600">{{ $activeForms }}</p>
                             </div>
                         </div>
                     </div>
@@ -86,8 +86,8 @@
                                 </div>
                             </div>
                             <div class="ml-4">
-                                <h3 class="text-lg font-medium text-gray-900">Submissions</h3>
-                                <p class="text-2xl font-bold text-yellow-600">0</p>
+                                <h3 class="text-lg font-medium text-gray-900">Total Submissions</h3>
+                                <p class="text-2xl font-bold text-yellow-600">{{ $totalSubmissions }}</p>
                             </div>
                         </div>
                     </div>
@@ -111,7 +111,7 @@
                             </div>
                         </a>
 
-                        <button class="flex items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition duration-150 ease-in-out">
+                        <a href="{{ route('admin.forms.index') }}" class="flex items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition duration-150 ease-in-out">
                             <div class="flex-shrink-0">
                                 <div class="w-10 h-10 bg-green-500 rounded-md flex items-center justify-center">
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,10 +120,10 @@
                                 </div>
                             </div>
                             <div class="ml-4 text-left">
-                                <h4 class="text-sm font-medium text-gray-900">View Submissions</h4>
-                                <p class="text-sm text-gray-500">Check form submissions and responses</p>
+                                <h4 class="text-sm font-medium text-gray-900">View All Forms</h4>
+                                <p class="text-sm text-gray-500">Manage forms and view submissions</p>
                             </div>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
