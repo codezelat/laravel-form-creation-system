@@ -290,8 +290,8 @@
             function renderField(field) {
                 const fieldsContainer = document.getElementById('form-fields');
                 
-                // Remove empty state if present
-                if (fieldsContainer.querySelector('.text-center')) {
+                // Only remove empty state if this is the very first field
+                if (formData.fields.length === 1 && fieldsContainer.querySelector('.text-center')) {
                     fieldsContainer.innerHTML = '';
                 }
 
@@ -312,6 +312,34 @@
                     
                     existingField.parentNode.replaceChild(newField, existingField);
                     addFieldEventListeners(field.id);
+                }
+            }
+
+            function rerenderAllFields() {
+                const fieldsContainer = document.getElementById('form-fields');
+                fieldsContainer.innerHTML = '';
+                
+                if (formData.fields.length === 0) {
+                    fieldsContainer.innerHTML = `
+                        <div class="text-center py-12 text-gray-500">
+                            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No fields yet</h3>
+                            <p class="mt-1 text-sm text-gray-500">Get started by adding a field from the panel on the left.</p>
+                        </div>
+                    `;
+                } else {
+                    formData.fields.forEach(field => {
+                        const fieldHTML = createFieldHTML(field);
+                        fieldsContainer.insertAdjacentHTML('beforeend', fieldHTML);
+                        addFieldEventListeners(field.id);
+                    });
+                }
+                
+                // Re-initialize sortable after re-rendering
+                if (typeof initializeSortable === 'function') {
+                    initializeSortable();
                 }
             }
 
@@ -452,21 +480,7 @@
                 fieldElement.querySelector('.field-delete-btn').addEventListener('click', function() {
                     if (confirm('Are you sure you want to delete this field?')) {
                         formData.fields = formData.fields.filter(f => f.id != fieldId);
-                        fieldElement.remove();
-                        
-                        // Show empty state if no fields
-                        if (formData.fields.length === 0) {
-                            document.getElementById('form-fields').innerHTML = `
-                                <div class="text-center py-12 text-gray-500">
-                                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                    </svg>
-                                    <h3 class="mt-2 text-sm font-medium text-gray-900">No fields yet</h3>
-                                    <p class="mt-1 text-sm text-gray-500">Get started by adding a field from the panel on the left.</p>
-                                </div>
-                            `;
-                        }
-                        
+                        rerenderAllFields();
                         autoSave();
                     }
                 });
@@ -517,17 +531,32 @@
                 }
             }
 
-            // Sortable fields
-            new Sortable(document.getElementById('form-fields'), {
-                handle: '.drag-handle',
-                animation: 150,
-                onEnd: function(evt) {
-                    // Update field order in formData
-                    const movedField = formData.fields.splice(evt.oldIndex, 1)[0];
-                    formData.fields.splice(evt.newIndex, 0, movedField);
-                    autoSave();
+            // Sortable fields - initialize once
+            let sortableInstance;
+            
+            function initializeSortable() {
+                if (sortableInstance) {
+                    sortableInstance.destroy();
                 }
-            });
+                
+                sortableInstance = new Sortable(document.getElementById('form-fields'), {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    filter: '.text-center', // Exclude empty state div
+                    onEnd: function(evt) {
+                        // Skip if empty state was involved
+                        if (evt.item.classList.contains('text-center')) return;
+                        
+                        // Update field order in formData
+                        const movedField = formData.fields.splice(evt.oldIndex, 1)[0];
+                        formData.fields.splice(evt.newIndex, 0, movedField);
+                        autoSave();
+                    }
+                });
+            }
+            
+            // Initialize sortable
+            initializeSortable();
 
             // Preview functionality
             document.getElementById('preview-btn').addEventListener('click', function() {
@@ -605,28 +634,6 @@
                         Submit
                     </button>
                 `;
-            }
-
-            // Initial render re-render when needed
-            function rerenderAllFields() {
-                const fieldsContainer = document.getElementById('form-fields');
-                fieldsContainer.innerHTML = '';
-                
-                if (formData.fields.length === 0) {
-                    fieldsContainer.innerHTML = `
-                        <div class="text-center py-12 text-gray-500">
-                            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No fields yet</h3>
-                            <p class="mt-1 text-sm text-gray-500">Get started by adding a field from the panel on the left.</p>
-                        </div>
-                    `;
-                } else {
-                    formData.fields.forEach(field => {
-                        renderField(field);
-                    });
-                }
             }
         });
     </script>
