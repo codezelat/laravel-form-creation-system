@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use App\Models\Form;
 use App\Models\FormSubmission;
+use App\Exports\FormSubmissionsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminAuthController extends Controller
 {
@@ -143,5 +145,18 @@ class AdminAuthController extends Controller
         $submission = FormSubmission::findOrFail($submissionId);
         
         return view('admin.forms.submission-detail', compact('adminUsername', 'form', 'submission'));
+    }
+
+    /**
+     * Export form submissions to Excel
+     */
+    public function exportSubmissions($id)
+    {
+        $form = Form::with('fields')->findOrFail($id);
+        
+        // Generate filename with form title and date
+        $filename = 'submissions_' . \Illuminate\Support\Str::slug($form->title) . '_' . now()->format('Y-m-d_His') . '.xlsx';
+        
+        return Excel::download(new FormSubmissionsExport($form), $filename);
     }
 }

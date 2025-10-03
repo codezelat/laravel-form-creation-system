@@ -338,9 +338,15 @@
                         
                         // Load fields
                         fieldCounter = 0;
-                        data.form.fields.forEach(field => {
-                            addFieldToForm(field);
-                        });
+                        if (data.form.fields.length > 0) {
+                            // Clear the "No fields yet" message before loading fields
+                            const fieldsContainer = document.getElementById('form-fields');
+                            fieldsContainer.innerHTML = '';
+                            
+                            data.form.fields.forEach(field => {
+                                addFieldToForm(field);
+                            });
+                        }
                     }
                 } catch (error) {
                     console.error('Error loading form:', error);
@@ -514,8 +520,9 @@
             function renderField(field) {
                 const fieldsContainer = document.getElementById('form-fields');
                 
-                // Only remove empty state if this is the very first field
-                if (formData.fields.length === 1 && fieldsContainer.querySelector('.text-center')) {
+                // Remove empty state if it exists (for both new fields and when adding the first field)
+                const emptyState = fieldsContainer.querySelector('.text-center');
+                if (emptyState) {
                     fieldsContainer.innerHTML = '';
                 }
 

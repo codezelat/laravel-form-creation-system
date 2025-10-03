@@ -20,6 +20,7 @@ Route::prefix('hidden-admin')->group(function () {
         Route::get('/forms', [AdminAuthController::class, 'index'])->name('admin.forms.index');
         Route::get('/forms/create', [AdminAuthController::class, 'createForm'])->name('admin.forms.create');
         Route::get('/forms/{id}/analytics', [AdminAuthController::class, 'showAnalytics'])->name('admin.forms.analytics');
+        Route::get('/forms/{id}/export', [AdminAuthController::class, 'exportSubmissions'])->name('admin.forms.export');
         Route::get('/forms/{formId}/submissions/{submissionId}', [AdminAuthController::class, 'showSubmission'])->name('admin.forms.submission');
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
         
