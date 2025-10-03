@@ -11,10 +11,14 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Cell\Hyperlink;
 
 class FormSubmissionsExport implements 
     FromCollection, 
@@ -22,11 +26,13 @@ class FormSubmissionsExport implements
     WithMapping, 
     WithStyles, 
     WithTitle, 
-    ShouldAutoSize
+    ShouldAutoSize,
+    WithEvents
 {
     protected $form;
     protected $fields;
     protected $headings;
+    protected $fileFieldColumns = []; // Track which columns have file uploads
 
     public function __construct(Form $form)
     {
@@ -46,9 +52,16 @@ class FormSubmissionsExport implements
             'Submitted Time',
         ];
 
-        // Add field labels as column headings
+        // Add field labels as column headings and track file columns
+        $columnIndex = 3; // Starting after ID, Date, Time (0-indexed: 3 = column D)
         foreach ($this->fields as $field) {
             $this->headings[] = $field->label . ($field->required ? ' *' : '');
+            
+            // Track file upload columns
+            if ($field->type === 'file') {
+                $this->fileFieldColumns[] = $columnIndex;
+            }
+            $columnIndex++;
         }
 
         $this->headings[] = 'IP Address';
@@ -122,15 +135,15 @@ class FormSubmissionsExport implements
                 return $value;
 
             case 'file':
-                // Handle file uploads
+                // Handle file uploads - return full URL
                 $files = is_string($submission->files) 
                     ? json_decode($submission->files, true) 
                     : $submission->files;
                 
                 $fieldKey = 'field_' . $field->id;
                 if (isset($files[$fieldKey])) {
-                    // Return the filename only
-                    return basename($files[$fieldKey]);
+                    // Return full URL to the file
+                    return url('storage/' . $files[$fieldKey]);
                 }
                 return $value;
 
@@ -230,5 +243,55 @@ class FormSubmissionsExport implements
         // Remove invalid characters
         $title = preg_replace('/[\\\\\/\*\?\[\]]/', '', $title);
         return $title ?: 'Submissions';
+    }
+
+    /**
+     * Register events to make file URLs clickable
+     */
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function(AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $totalRows = $this->collection()->count() + 1; // +1 for header
+                
+                // Make file upload URLs clickable hyperlinks
+                foreach ($this->fileFieldColumns as $colIndex) {
+                    $columnLetter = $this->getColumnLetter($colIndex);
+                    
+                    // Loop through all data rows (skip header)
+                    for ($row = 2; $row <= $totalRows; $row++) {
+                        $cell = $sheet->getCell($columnLetter . $row);
+                        $url = $cell->getValue();
+                        
+                        // Only process if it looks like a URL
+                        if ($url && (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0)) {
+                            // Extract filename from URL for display
+                            $filename = basename(parse_url($url, PHP_URL_PATH));
+                            
+                            // Set the hyperlink
+                            $cell->getHyperlink()->setUrl($url);
+                            $cell->setValue($filename); // Show filename but link to URL
+                            
+                            // Style the link (blue, underlined)
+                            $sheet->getStyle($columnLetter . $row)->applyFromArray([
+                                'font' => [
+                                    'color' => ['rgb' => '0563C1'], // Blue color
+                                    'underline' => true,
+                                ],
+                            ]);
+                        }
+                    }
+                }
+            },
+        ];
+    }
+
+    /**
+     * Convert column index to Excel column letter (0=A, 1=B, etc.)
+     */
+    protected function getColumnLetter($index): string
+    {
+        return chr(65 + $index);
     }
 }
