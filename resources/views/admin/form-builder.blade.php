@@ -314,13 +314,37 @@
                     const data = await response.json();
                     
                     if (data.success) {
+                        console.log('Loading form data:', data.form);
+                        
+                        // Process fields from backend and assign new IDs
+                        fieldCounter = 0;
+                        const processedFields = data.form.fields.map((field, index) => {
+                            fieldCounter++;
+                            const processed = {
+                                id: fieldCounter,
+                                type: field.type,
+                                label: field.label,
+                                required: field.required || false,
+                                options: field.options || null,
+                                fileSettings: field.file_settings || field.fileSettings || (field.type === 'file' ? {
+                                    allowedTypes: ['pdf', 'doc', 'docx', 'jpg', 'png'],
+                                    maxSize: 5
+                                } : null),
+                                order: field.order || fieldCounter
+                            };
+                            console.log(`Processed field ${index}:`, processed);
+                            return processed;
+                        });
+                        
                         formData = {
                             id: data.form.id,
                             title: data.form.title,
                             description: data.form.description,
                             color: data.form.color,
-                            fields: data.form.fields
+                            fields: processedFields
                         };
+                        
+                        console.log('Total fields to render:', formData.fields.length);
                         
                         // Update UI with loaded data
                         document.getElementById('form-title').value = formData.title;
@@ -329,22 +353,26 @@
                         document.getElementById('form-description-display').textContent = formData.description;
                         
                         // Set color
-                        document.querySelectorAll('input[name="color"]').forEach(radio => {
-                            if (radio.value === formData.color) {
-                                radio.checked = true;
-                                radio.dispatchEvent(new Event('change'));
+                        document.querySelectorAll('[data-color]').forEach(button => {
+                            if (button.dataset.color === formData.color) {
+                                button.click();
                             }
                         });
                         
-                        // Load fields
-                        fieldCounter = 0;
-                        if (data.form.fields.length > 0) {
-                            // Clear the "No fields yet" message before loading fields
+                        // Load fields - render directly without duplicating
+                        if (formData.fields.length > 0) {
                             const fieldsContainer = document.getElementById('form-fields');
                             fieldsContainer.innerHTML = '';
                             
-                            data.form.fields.forEach(field => {
-                                addFieldToForm(field);
+                            // Render all fields with error handling
+                            formData.fields.forEach((field, index) => {
+                                try {
+                                    const fieldHTML = createFieldHTML(field);
+                                    fieldsContainer.insertAdjacentHTML('beforeend', fieldHTML);
+                                    addFieldEventListeners(field.id);
+                                } catch (error) {
+                                    console.error(`Error rendering field ${index}:`, field, error);
+                                }
                             });
                         }
                     }
@@ -520,10 +548,10 @@
             function renderField(field) {
                 const fieldsContainer = document.getElementById('form-fields');
                 
-                // Remove empty state if it exists (for both new fields and when adding the first field)
+                // Remove empty state if it exists (only when adding new fields, not during bulk loading)
                 const emptyState = fieldsContainer.querySelector('.text-center');
                 if (emptyState) {
-                    fieldsContainer.innerHTML = '';
+                    emptyState.remove();
                 }
 
                 const fieldHTML = createFieldHTML(field);
@@ -627,13 +655,15 @@
                         `).join('');
                         break;
                     case 'file':
+                        const allowedTypes = field.fileSettings?.allowedTypes || ['pdf', 'doc', 'docx', 'jpg', 'png'];
+                        const maxSize = field.fileSettings?.maxSize || 5;
                         fieldContent = `
                             <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                 </svg>
                                 <p class="mt-2 text-sm text-gray-500">Upload a file</p>
-                                <p class="text-xs text-gray-400">Allowed: ${field.fileSettings.allowedTypes.join(', ')} (Max: ${field.fileSettings.maxSize}MB)</p>
+                                <p class="text-xs text-gray-400">Allowed: ${allowedTypes.join(', ')} (Max: ${maxSize}MB)</p>
                             </div>
                         `;
                         break;
@@ -693,12 +723,12 @@
                                 <div class="mb-2">
                                     <label class="block text-xs font-medium text-gray-700 mb-1">Allowed file types:</label>
                                     <input type="text" class="file-types w-full px-2 py-1 border border-gray-300 rounded text-sm" 
-                                           value="${field.fileSettings.allowedTypes.join(', ')}" placeholder="pdf, doc, jpg, png">
+                                           value="${(field.fileSettings?.allowedTypes || ['pdf', 'doc', 'docx', 'jpg', 'png']).join(', ')}" placeholder="pdf, doc, jpg, png">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-gray-700 mb-1">Max file size (MB):</label>
                                     <input type="number" class="file-size w-full px-2 py-1 border border-gray-300 rounded text-sm" 
-                                           value="${field.fileSettings.maxSize}" min="1" max="100">
+                                           value="${field.fileSettings?.maxSize || 5}" min="1" max="100">
                                 </div>
                             </div>
                         ` : ''}
@@ -709,72 +739,115 @@
             function addFieldEventListeners(fieldId) {
                 const fieldElement = document.querySelector(`[data-field-id="${fieldId}"]`);
                 
+                if (!fieldElement) {
+                    console.error(`Field element not found for ID: ${fieldId}`);
+                    return;
+                }
+                
                 // Label change
-                fieldElement.querySelector('.field-label').addEventListener('input', function() {
-                    const field = formData.fields.find(f => f.id == fieldId);
-                    field.label = this.value;
-                    autoSave();
-                });
+                const labelInput = fieldElement.querySelector('.field-label');
+                if (labelInput) {
+                    labelInput.addEventListener('input', function() {
+                        const field = formData.fields.find(f => f.id == fieldId);
+                        if (field) {
+                            field.label = this.value;
+                            autoSave();
+                        }
+                    });
+                }
 
                 // Required checkbox
-                fieldElement.querySelector('.field-required').addEventListener('change', function() {
-                    const field = formData.fields.find(f => f.id == fieldId);
-                    field.required = this.checked;
-                    autoSave();
-                });
+                const requiredCheckbox = fieldElement.querySelector('.field-required');
+                if (requiredCheckbox) {
+                    requiredCheckbox.addEventListener('change', function() {
+                        const field = formData.fields.find(f => f.id == fieldId);
+                        if (field) {
+                            field.required = this.checked;
+                            autoSave();
+                        }
+                    });
+                }
 
                 // Delete field
-                fieldElement.querySelector('.field-delete-btn').addEventListener('click', function() {
-                    if (confirm('Are you sure you want to delete this field?')) {
-                        formData.fields = formData.fields.filter(f => f.id != fieldId);
-                        rerenderAllFields();
-                        autoSave();
-                    }
-                });
+                const deleteBtn = fieldElement.querySelector('.field-delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function() {
+                        if (confirm('Are you sure you want to delete this field?')) {
+                            formData.fields = formData.fields.filter(f => f.id != fieldId);
+                            rerenderAllFields();
+                            autoSave();
+                        }
+                    });
+                }
 
                 // Options handling for select, radio, checkbox
                 const field = formData.fields.find(f => f.id == fieldId);
+                if (!field) {
+                    console.error(`Field not found in formData for ID: ${fieldId}`);
+                    return;
+                }
+                
                 if (field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') {
                     const optionsContainer = fieldElement.querySelector('.field-options');
                     
-                    // Option input changes
-                    optionsContainer.addEventListener('input', function(e) {
-                        if (e.target.classList.contains('option-input')) {
-                            const optionIndex = e.target.dataset.optionIndex;
-                            field.options[optionIndex] = e.target.value;
-                            autoSave();
-                        }
-                    });
+                    if (optionsContainer) {
+                        // Option input changes
+                        optionsContainer.addEventListener('input', function(e) {
+                            if (e.target.classList.contains('option-input')) {
+                                const optionIndex = e.target.dataset.optionIndex;
+                                field.options[optionIndex] = e.target.value;
+                                autoSave();
+                            }
+                        });
 
-                    // Remove option
-                    optionsContainer.addEventListener('click', function(e) {
-                        if (e.target.closest('.remove-option')) {
-                            const optionIndex = e.target.closest('.remove-option').dataset.optionIndex;
-                            field.options.splice(optionIndex, 1);
-                            updateField(field);
-                            autoSave();
-                        }
-                    });
+                        // Remove option
+                        optionsContainer.addEventListener('click', function(e) {
+                            if (e.target.closest('.remove-option')) {
+                                const optionIndex = e.target.closest('.remove-option').dataset.optionIndex;
+                                field.options.splice(optionIndex, 1);
+                                updateField(field);
+                                autoSave();
+                            }
+                        });
 
-                    // Add option
-                    optionsContainer.querySelector('.add-option').addEventListener('click', function() {
-                        field.options.push(`Option ${field.options.length + 1}`);
-                        updateField(field);
-                        autoSave();
-                    });
+                        // Add option
+                        const addOptionBtn = optionsContainer.querySelector('.add-option');
+                        if (addOptionBtn) {
+                            addOptionBtn.addEventListener('click', function() {
+                                field.options.push(`Option ${field.options.length + 1}`);
+                                updateField(field);
+                                autoSave();
+                            });
+                        }
+                    }
                 }
 
                 // File settings
                 if (field.type === 'file') {
-                    fieldElement.querySelector('.file-types').addEventListener('input', function() {
-                        field.fileSettings.allowedTypes = this.value.split(',').map(type => type.trim());
-                        autoSave();
-                    });
+                    // Ensure fileSettings exists
+                    if (!field.fileSettings) {
+                        field.fileSettings = {
+                            allowedTypes: ['pdf', 'doc', 'docx', 'jpg', 'png'],
+                            maxSize: 5
+                        };
+                    }
+                    
+                    const fileTypesInput = fieldElement.querySelector('.file-types');
+                    const fileSizeInput = fieldElement.querySelector('.file-size');
+                    
+                    if (fileTypesInput) {
+                        fileTypesInput.addEventListener('input', function() {
+                            field.fileSettings.allowedTypes = this.value.split(',').map(type => type.trim());
+                            autoSave();
+                        });
+                    }
 
-                    fieldElement.querySelector('.file-size').addEventListener('input', function() {
-                        field.fileSettings.maxSize = parseInt(this.value);
-                        autoSave();
-                    });
+                    if (fileSizeInput) {
+                        fileSizeInput.addEventListener('input', function() {
+                            field.fileSettings.maxSize = parseInt(this.value);
+                            autoSave();
+                        });
+                    }
                 }
             }
 

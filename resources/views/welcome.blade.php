@@ -31,7 +31,7 @@
                     Smart Forms System
                 </h2>
                 <p class="text-xl md:text-2xl mb-8 text-purple-100 max-w-3xl mx-auto">
-                    Create, manage, and analyze forms effortlessly. Built for Sri Lanka Institute of Information Technology Campus.
+                    Create, manage, and analyze forms effortlessly. Built for SITC Campus.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a href="#features" class="bg-white text-purple-600 px-8 py-4 rounded-lg font-semibold hover:bg-purple-50 transition shadow-lg">
