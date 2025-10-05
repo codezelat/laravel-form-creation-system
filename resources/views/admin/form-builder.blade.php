@@ -1017,6 +1017,16 @@
                     showError('Please save the form before publishing. Add at least one field and wait for auto-save.');
                     return;
                 }
+                
+                // Pre-fill with existing values if form is already published
+                if (formData.slug) {
+                    document.getElementById('custom-slug').value = formData.slug;
+                }
+                if (formData.form_status) {
+                    const statusRadio = document.querySelector(`input[name="form_status"][value="${formData.form_status}"]`);
+                    if (statusRadio) statusRadio.checked = true;
+                }
+                
                 showModal('publish-modal');
             });
             
