@@ -341,7 +341,10 @@
                             title: data.form.title,
                             description: data.form.description,
                             color: data.form.color,
-                            fields: processedFields
+                            fields: processedFields,
+                            status: data.form.status,
+                            slug: data.form.slug,
+                            form_status: data.form.form_status
                         };
                         
                         console.log('Total fields to render:', formData.fields.length);
@@ -351,6 +354,30 @@
                         document.getElementById('form-description').value = formData.description;
                         document.getElementById('form-title-display').textContent = formData.title;
                         document.getElementById('form-description-display').textContent = formData.description;
+                        
+                        // Check if form is already published
+                        if (data.form.status === 'published' && data.form.slug) {
+                            formData.published = true;
+                            formData.url = window.location.origin + '/form/' + data.form.slug;
+                            
+                            // Update publish button to show published state
+                            const publishBtn = document.getElementById('publish-btn');
+                            publishBtn.textContent = 'Update & Republish';
+                            publishBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                            publishBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                            
+                            // Show settings button for published forms
+                            const settingsBtn = document.getElementById('settings-btn');
+                            settingsBtn.classList.remove('hidden');
+                            settingsBtn.addEventListener('click', function() {
+                                showModal('publish-modal');
+                                // Pre-fill with current values
+                                document.getElementById('custom-slug').value = data.form.slug || '';
+                                // Set current form status
+                                const statusRadio = document.querySelector(`input[name="form_status"][value="${data.form.form_status}"]`);
+                                if (statusRadio) statusRadio.checked = true;
+                            });
+                        }
                         
                         // Set color
                         document.querySelectorAll('[data-color]').forEach(button => {
@@ -1018,8 +1045,8 @@
                     if (data.success) {
                         hideModal('publish-modal');
                         
-                        // Store form URL and slug
-                        formData.url = window.location.origin + data.url;
+                        // Store form URL and slug (backend already returns full URL)
+                        formData.url = data.url;
                         formData.slug = data.slug;
                         formData.published = true;
                         
@@ -1028,7 +1055,7 @@
                         showModal('success-modal');
                         
                         // Update publish button
-                        publishBtn.textContent = 'Published ✓';
+                        publishBtn.textContent = 'Update & Republish';
                         publishBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
                         publishBtn.classList.add('bg-green-600', 'hover:bg-green-700');
                         
