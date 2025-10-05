@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $form->title }}</title>
+    <title>{{ $form->title }} - SITC Campus</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/sitc-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/sitc-icon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .form-field {
@@ -29,10 +31,21 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-8 sm:py-12">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen pb-8 sm:pb-12">
+    <!-- SITC Branding Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200 mb-8">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img src="{{ asset('images/sitc-logo.png') }}" alt="SITC Campus" class="h-10 w-auto">
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Form Container -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 mb-8 sm:mb-12">
             <!-- Form Header with Brand -->
             <div class="p-8 sm:p-10 border-b-4 border-{{ $form->color }}-500 bg-gradient-to-r from-{{ $form->color }}-50 to-white">
                 <div class="flex items-start justify-between">
@@ -206,10 +219,6 @@
             </form>
         </div>
 
-        <!-- Footer -->
-        <div class="mt-8 text-center text-sm text-gray-500">
-            <p>Powered by Form Creation System</p>
-        </div>
     </div>
 
     <script>
@@ -315,5 +324,23 @@
             }
         });
     </script>
+
+    <!-- Footer -->
+    <footer class="mt-16 border-t border-gray-200 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                <div class="flex items-center space-x-3">
+                    <img src="{{ asset('images/sitc-logo.png') }}" alt="SITC Campus" class="h-8 w-auto">
+                    <div class="text-sm text-gray-600">
+                        <p class="font-semibold">SITC Campus</p>
+                        <p class="text-xs">Smart Forms System</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-200 text-center text-xs text-gray-500">
+                <p>&copy; {{ date('Y') }} SITC Campus. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

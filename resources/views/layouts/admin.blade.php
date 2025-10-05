@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin Dashboard') - Form Builder</title>
+    <title>@yield('title', 'Admin Dashboard') - SITC Form Builder</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/sitc-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/sitc-icon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-50">
@@ -15,12 +17,8 @@
                 <!-- Logo & Brand -->
                 <div class="flex items-center space-x-8">
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <span class="text-xl font-bold text-gray-900">SITC Form Builder</span>
+                        <img src="{{ asset('images/sitc-logo.png') }}" alt="SITC Campus" class="h-7 w-auto">
+                        <span class="text-lg font-semibold text-gray-900 hidden sm:block">Form Builder</span>
                     </a>
                     
                     <!-- Navigation Links -->

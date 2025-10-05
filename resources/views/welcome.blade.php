@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SITC Campus - Smart Forms System</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/sitc-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/sitc-icon.png') }}">
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -11,8 +13,9 @@
     <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-black">
+                <div class="flex items-center space-x-3">
+                    <img src="{{ asset('images/sitc-logo.png') }}" alt="SITC Campus" class="h-10 w-auto">
+                    <h1 class="hidden text-2xl font-bold text-black">
                         SITC Campus
                     </h1>
                 </div>

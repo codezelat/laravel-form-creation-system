@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SITC Form Builder - {{ config('app.name') }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/sitc-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/sitc-icon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
@@ -19,6 +21,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
                     </a>
+                    <img src="{{ asset('images/sitc-logo.png') }}" alt="SITC" class="h-8 w-auto hidden sm:block">
                     <h1 class="text-xl font-semibold text-gray-900">Form Builder</h1>
                     <span class="text-sm text-gray-500" id="auto-save-status">Changes saved</span>
                 </div>
