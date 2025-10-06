@@ -5,12 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Form;
 use App\Models\FormField;
 use App\Models\FormSubmission;
+use App\Services\TurnstileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class FormController extends Controller
 {
+    protected TurnstileService $turnstileService;
+
+    public function __construct(TurnstileService $turnstileService)
+    {
+        $this->turnstileService = $turnstileService;
+    }
     /**
      * Store or update a form (auto-save)
      */
@@ -148,7 +155,9 @@ class FormController extends Controller
             return view('form.locked');
         }
 
-        return view('form.show', compact('form'));
+        $turnstileSiteKey = $this->turnstileService->getSiteKey();
+
+        return view('form.show', compact('form', 'turnstileSiteKey'));
     }
 
     /**
@@ -167,6 +176,22 @@ class FormController extends Controller
                 'success' => false,
                 'message' => 'This form is not accepting submissions.',
             ], 403);
+        }
+
+        // Validate Turnstile token
+        $turnstileToken = $request->input('cf-turnstile-response');
+        if (!$turnstileToken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please complete the security verification.',
+            ], 422);
+        }
+
+        if (!$this->turnstileService->verify($turnstileToken, $request->ip())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Security verification failed. Please try again.',
+            ], 422);
         }
 
         $submissionData = [];

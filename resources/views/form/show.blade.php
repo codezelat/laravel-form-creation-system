@@ -8,6 +8,9 @@
     <link rel="icon" type="image/png" href="{{ asset('images/sitc-icon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/sitc-icon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         .form-field {
             transition: all 0.2s ease;
@@ -203,18 +206,32 @@
 
                 <!-- Submit Button Section -->
                 <div class="pt-6 border-t-2 border-gray-200">
+                    <!-- Cloudflare Turnstile -->
+                    <div class="mb-6 flex justify-center">
+                        <div class="cf-turnstile" 
+                             data-sitekey="{{ $turnstileSiteKey }}"
+                             data-theme="light"
+                             data-size="normal"
+                             data-callback="onTurnstileSuccess"
+                             data-error-callback="onTurnstileError"
+                             data-expired-callback="onTurnstileExpired">
+                        </div>
+                    </div>
+                    
                     <button type="submit" 
                             id="submit-btn"
-                            class="w-full bg-gradient-to-r from-{{ $form->color }}-600 to-{{ $form->color }}-700 hover:from-{{ $form->color }}-700 hover:to-{{ $form->color }}-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center">
+                            class="w-full bg-gradient-to-r from-{{ $form->color }}-600 to-{{ $form->color }}-700 hover:from-{{ $form->color }}-700 hover:to-{{ $form->color }}-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            disabled>
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <span id="submit-btn-text">Submit Form</span>
                         <span id="submit-spinner" class="hidden loading-spinner"></span>
                     </button>
-                    <p class="mt-4 text-center text-sm text-gray-500">
-                        Your response will be recorded securely
-                    </p>
+                    <div class="mt-4 text-center text-sm text-gray-500">
+                        <p id="security-status" class="mb-2">Please complete the security verification above</p>
+                        <p>Your response will be recorded securely</p>
+                    </div>
                 </div>
             </form>
         </div>
@@ -222,6 +239,39 @@
     </div>
 
     <script>
+        let turnstileToken = null;
+        
+        // Turnstile callback functions
+        window.onTurnstileSuccess = function(token) {
+            turnstileToken = token;
+            const submitBtn = document.getElementById('submit-btn');
+            const securityStatus = document.getElementById('security-status');
+            
+            submitBtn.disabled = false;
+            securityStatus.textContent = 'Security verification completed ✓';
+            securityStatus.className = 'mb-2 text-green-600 font-medium';
+        };
+        
+        window.onTurnstileError = function() {
+            turnstileToken = null;
+            const submitBtn = document.getElementById('submit-btn');
+            const securityStatus = document.getElementById('security-status');
+            
+            submitBtn.disabled = true;
+            securityStatus.textContent = 'Security verification failed. Please try again.';
+            securityStatus.className = 'mb-2 text-red-600 font-medium';
+        };
+        
+        window.onTurnstileExpired = function() {
+            turnstileToken = null;
+            const submitBtn = document.getElementById('submit-btn');
+            const securityStatus = document.getElementById('security-status');
+            
+            submitBtn.disabled = true;
+            securityStatus.textContent = 'Security verification expired. Please verify again.';
+            securityStatus.className = 'mb-2 text-orange-600 font-medium';
+        };
+
         const form = document.getElementById('submission-form');
         const submitBtn = document.getElementById('submit-btn');
         const submitBtnText = document.getElementById('submit-btn-text');
@@ -232,6 +282,14 @@
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Check if Turnstile token is available
+            if (!turnstileToken) {
+                const securityStatus = document.getElementById('security-status');
+                securityStatus.textContent = 'Please complete the security verification first.';
+                securityStatus.className = 'mb-2 text-red-600 font-medium';
+                return;
+            }
 
             // Disable submit button and show loading state
             submitBtn.disabled = true;
@@ -245,6 +303,9 @@
 
             try {
                 const formData = new FormData(form);
+                
+                // Add Turnstile token to form data
+                formData.append('cf-turnstile-response', turnstileToken);
                 
                 const response = await fetch('{{ route('form.submit', $form->slug) }}', {
                     method: 'POST',
@@ -282,12 +343,26 @@
                     submitBtn.classList.remove('opacity-75');
                     submitBtn.classList.add('bg-green-600', 'hover:bg-green-700');
                     
+                    // Reset form and Turnstile after successful submission
+                    form.reset();
+                    turnstileToken = null;
+                    
+                    // Reset Turnstile widget
+                    if (typeof turnstile !== 'undefined') {
+                        turnstile.reset();
+                    }
+                    
                     // Reset button after 5 seconds
                     setTimeout(() => {
-                        submitBtn.disabled = false;
+                        submitBtn.disabled = true; // Will be re-enabled when Turnstile is completed again
                         submitBtnText.textContent = 'Submit Form';
                         submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'cursor-not-allowed');
                         successMessage.classList.add('hidden');
+                        
+                        // Reset security status
+                        const securityStatus = document.getElementById('security-status');
+                        securityStatus.textContent = 'Please complete the security verification above';
+                        securityStatus.className = 'mb-2 text-gray-500';
                     }, 5000);
                 } else {
                     throw new Error(data.message || 'Submission failed. Please try again.');
@@ -309,10 +384,21 @@
                 // Scroll to top to show error message
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 
-                // Re-enable submit button
-                submitBtn.disabled = false;
+                // Re-enable submit button (will be disabled again until Turnstile is completed)
+                submitBtn.disabled = true;
                 submitBtnText.textContent = 'Submit Form';
                 submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                
+                // Reset Turnstile widget on error
+                turnstileToken = null;
+                if (typeof turnstile !== 'undefined') {
+                    turnstile.reset();
+                }
+                
+                // Reset security status
+                const securityStatus = document.getElementById('security-status');
+                securityStatus.textContent = 'Please complete the security verification above';
+                securityStatus.className = 'mb-2 text-gray-500';
                 
                 // Auto-hide error after 8 seconds
                 setTimeout(() => {
