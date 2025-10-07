@@ -229,6 +229,7 @@ class FormController extends Controller
                 $submission = FormSubmission::create([
                     'form_id' => $form->id,
                     'submission_data' => [],
+                    'field_snapshot' => FormSubmission::createFieldSnapshot($form),
                     'files' => [],
                     'ip_address' => $request->ip(),
                     'user_agent' => $request->userAgent(),
@@ -255,6 +256,7 @@ class FormController extends Controller
             $submission = FormSubmission::create([
                 'form_id' => $form->id,
                 'submission_data' => $submissionData,
+                'field_snapshot' => FormSubmission::createFieldSnapshot($form),
                 'files' => $uploadedFiles,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),

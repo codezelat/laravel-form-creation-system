@@ -91,20 +91,15 @@ class FormSubmissionsExport implements
      */
     public function map($submission): array
     {
-        $submissionData = is_string($submission->submission_data) 
-            ? json_decode($submission->submission_data, true) 
-            : $submission->submission_data;
-
         $row = [
             '#' . $submission->id,
             $submission->submitted_at->format('M d, Y'),
             $submission->submitted_at->format('H:i:s'),
         ];
 
-        // Map field values in the correct order
+        // Map field values in the correct order using the improved method
         foreach ($this->fields as $field) {
-            $fieldKey = 'field_' . $field->id;
-            $value = $submissionData[$fieldKey] ?? '';
+            $value = $submission->getFieldValue($field);
 
             // Format the value based on field type
             $row[] = $this->formatFieldValue($value, $field, $submission);
@@ -135,17 +130,13 @@ class FormSubmissionsExport implements
                 return $value;
 
             case 'file':
-                // Handle file uploads - return full URL
-                $files = is_string($submission->files) 
-                    ? json_decode($submission->files, true) 
-                    : $submission->files;
-                
-                $fieldKey = 'field_' . $field->id;
-                if (isset($files[$fieldKey])) {
+                // Handle file uploads - return full URL using the improved method
+                $filePath = $submission->getFieldFile($field);
+                if ($filePath) {
                     // Return full URL to the file
-                    return url('storage/' . $files[$fieldKey]);
+                    return url('storage/' . $filePath);
                 }
-                return $value;
+                return $value ?: 'N/A';
 
             case 'date':
                 // Format dates nicely

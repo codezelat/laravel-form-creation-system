@@ -96,15 +96,16 @@
                     </label>
                     
                     @php
-                        $fieldKey = 'field_' . $field->id;
-                        $value = $submissionData[$fieldKey] ?? null;
+                        $value = $submission->getFieldValue($field);
                     @endphp
 
                     @if($field->type === 'file')
-                        @if(isset($files[$fieldKey]))
+                        @php
+                            $filePath = $submission->getFieldFile($field);
+                        @endphp
+                        @if($filePath)
                             <div class="mt-2">
                                 @php
-                                    $filePath = $files[$fieldKey];
                                     $fileName = basename($filePath);
                                 @endphp
                                 <div class="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
