@@ -1160,34 +1160,6 @@ git push origin feature/amazing-feature
 
 ---
 
-## 📋 Roadmap
-
-### Version 2.0 (Planned)
-
-- [ ] Conditional logic (show/hide fields based on answers)
-- [ ] Multi-page forms with progress indicator
-- [ ] Form templates library
-- [ ] Email notifications for submissions
-- [ ] Webhook integrations
-- [ ] API authentication for external access
-- [ ] Form duplication feature
-- [ ] Custom validation rules
-- [ ] Rich text editor for descriptions
-- [ ] More chart types in analytics
-
-### Version 2.1 (Future)
-
-- [ ] User roles and permissions
-- [ ] Submission editing by users
-- [ ] Form versioning
-- [ ] A/B testing for forms
-- [ ] Payment integration (Stripe, PayPal)
-- [ ] Digital signatures
-- [ ] PDF export of submissions
-- [ ] Mobile app for form viewing
-
----
-
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the LICENSE file for details.
@@ -1211,7 +1183,7 @@ furnished to do so, subject to the following conditions...
 
 ### Core Team
 
-- **Lead Developer** - System architecture and implementation
+- **Codezela Technologies** - System architecture and implementation
 
 ### Acknowledgments
 
@@ -1246,7 +1218,6 @@ If this project helped you, please consider giving it a ⭐️!
 
 **Current Version**: 1.0.0  
 **Last Updated**: December 2025  
-**Status**: Active Development
 
 ---
 
