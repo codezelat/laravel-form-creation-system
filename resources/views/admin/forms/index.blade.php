@@ -72,10 +72,15 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    @if($form->status === 'published')
+                                    @if($form->status === 'published' && $form->form_status === 'active')
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
                                             Active
+                                        </span>
+                                    @elseif($form->status === 'published' && $form->form_status === 'inactive')
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span>
+                                            Inactive
                                         </span>
                                     @else
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">

@@ -76,7 +76,9 @@ class AdminAuthController extends Controller
         
         // Get real analytics data
         $totalForms = \App\Models\Form::count();
-        $activeForms = \App\Models\Form::where('status', 'published')->count();
+        $activeForms = \App\Models\Form::where('status', 'published')
+            ->where('form_status', 'active')
+            ->count();
         $totalSubmissions = \App\Models\FormSubmission::count();
         $recentForms = \App\Models\Form::latest()->take(5)->get();
         

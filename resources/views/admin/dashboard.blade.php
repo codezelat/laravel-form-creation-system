@@ -126,10 +126,15 @@
                                     <h3 class="text-sm font-medium text-gray-900 truncate">{{ $form->title }}</h3>
                                     <p class="text-sm text-gray-500 mt-1 truncate">{{ Str::limit($form->description, 80) }}</p>
                                     <div class="flex items-center space-x-3 mt-2">
-                                        @if($form->status === 'published')
+                                        @if($form->status === 'published' && $form->form_status === 'active')
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
                                                 Active
+                                            </span>
+                                        @elseif($form->status === 'published' && $form->form_status === 'inactive')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 mr-1.5"></span>
+                                                Inactive
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
