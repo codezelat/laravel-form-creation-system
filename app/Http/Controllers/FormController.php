@@ -7,6 +7,7 @@ use App\Models\FormField;
 use App\Models\FormSubmission;
 use App\Services\TurnstileService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -196,6 +197,7 @@ class FormController extends Controller
 
         $submissionData = [];
         $uploadedFiles = [];
+        $pendingFiles = [];
 
         // Process each field
         foreach ($form->fields as $field) {
@@ -211,7 +213,8 @@ class FormController extends Controller
 
             // Handle file uploads
             if ($field->type === 'file' && $request->hasFile('field_' . $field->id)) {
-                $file = $request->file('field_' . $field->id);
+                $fieldKey = 'field_' . $field->id;
+                $file = $request->file($fieldKey);
                 
                 // Validate file
                 $fileSettings = $field->file_settings;
@@ -225,34 +228,16 @@ class FormController extends Controller
                     }
                 }
 
-                // Create submission first to get ID
-                $submission = FormSubmission::create([
-                    'form_id' => $form->id,
-                    'submission_data' => [],
-                    'field_snapshot' => FormSubmission::createFieldSnapshot($form),
-                    'files' => [],
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                    'submitted_at' => now(),
-                ]);
-
-                // Store file
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs(
-                    "submissions/{$form->id}/{$submission->id}",
-                    $fileName,
-                    'public'
-                );
-
-                $uploadedFiles['field_' . $field->id] = $path;
-                $submissionData['field_' . $field->id] = $fileName;
+                $pendingFiles[] = [
+                    'field_key' => $fieldKey,
+                    'file' => $file,
+                ];
             } else {
                 $submissionData['field_' . $field->id] = $fieldValue;
             }
         }
 
-        // Update or create submission
-        if (!isset($submission)) {
+        DB::transaction(function () use ($form, $request, &$submissionData, &$uploadedFiles, $pendingFiles) {
             $submission = FormSubmission::create([
                 'form_id' => $form->id,
                 'submission_data' => $submissionData,
@@ -262,12 +247,29 @@ class FormController extends Controller
                 'user_agent' => $request->userAgent(),
                 'submitted_at' => now(),
             ]);
-        } else {
-            $submission->update([
-                'submission_data' => $submissionData,
-                'files' => $uploadedFiles,
-            ]);
-        }
+
+            foreach ($pendingFiles as $pendingFile) {
+                $file = $pendingFile['file'];
+                $fieldKey = $pendingFile['field_key'];
+
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs(
+                    "submissions/{$form->id}/{$submission->id}",
+                    $fileName,
+                    'public'
+                );
+
+                $uploadedFiles[$fieldKey] = $path;
+                $submissionData[$fieldKey] = $fileName;
+            }
+
+            if (!empty($pendingFiles)) {
+                $submission->update([
+                    'submission_data' => $submissionData,
+                    'files' => $uploadedFiles,
+                ]);
+            }
+        });
 
         return response()->json([
             'success' => true,
