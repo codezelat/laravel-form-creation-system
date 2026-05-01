@@ -1,3 +1,7 @@
+@php
+    $formColor = in_array($form->color, ['blue', 'green', 'purple', 'red', 'yellow', 'indigo'], true) ? $form->color : 'blue';
+@endphp
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,7 +54,7 @@
         <!-- Form Container -->
         <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 mb-8 sm:mb-12">
             <!-- Form Header with Brand -->
-            <div class="p-8 sm:p-10 border-b-4 border-{{ $form->color }}-500 bg-gradient-to-r from-{{ $form->color }}-50 to-white">
+            <div class="p-8 sm:p-10 border-b-4 border-{{ $formColor }}-500 bg-gradient-to-r from-{{ $formColor }}-50 to-white">
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
                         <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">{{ $form->title }}</h1>
@@ -60,8 +64,8 @@
                     </div>
                     <!-- Optional Form Icon -->
                     <div class="hidden sm:block ml-4">
-                        <div class="w-16 h-16 rounded-full bg-{{ $form->color }}-100 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-{{ $form->color }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 rounded-full bg-{{ $formColor }}-100 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-{{ $formColor }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                         </div>
@@ -108,7 +112,7 @@
             <!-- Form Fields -->
             <form id="submission-form" class="p-8 sm:p-10 space-y-8" enctype="multipart/form-data">
                 @foreach($form->fields as $field)
-                    <div class="form-field bg-gray-50 p-6 rounded-lg border border-gray-200 hover:border-{{ $form->color }}-300 transition-all">
+                    <div class="form-field bg-gray-50 p-6 rounded-lg border border-gray-200 hover:border-{{ $formColor }}-300 transition-all">
                         <label class="block text-base font-semibold text-gray-800 mb-3">
                             {{ $field->label }}
                             @if($field->required)
@@ -123,7 +127,7 @@
                             @case('date')
                                 <input type="{{ $field->type }}" 
                                        name="field_{{ $field->id }}" 
-                                       class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500 focus:border-transparent transition-all shadow-sm"
+                                       class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $formColor }}-500 focus:border-transparent transition-all shadow-sm"
                                        placeholder="Enter your {{ strtolower($field->label) }}"
                                        {{ $field->required ? 'required' : '' }}>
                                 @break
@@ -131,14 +135,14 @@
                             @case('textarea')
                                 <textarea name="field_{{ $field->id }}" 
                                           rows="5" 
-                                          class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500 focus:border-transparent transition-all shadow-sm resize-y"
+                                          class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $formColor }}-500 focus:border-transparent transition-all shadow-sm resize-y"
                                           placeholder="Enter your {{ strtolower($field->label) }}"
                                           {{ $field->required ? 'required' : '' }}></textarea>
                                 @break
 
                             @case('select')
                                 <select name="field_{{ $field->id }}" 
-                                        class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500 focus:border-transparent transition-all shadow-sm"
+                                        class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $formColor }}-500 focus:border-transparent transition-all shadow-sm"
                                         {{ $field->required ? 'required' : '' }}>
                                     <option value="">-- Select an option --</option>
                                     @foreach($field->options as $option)
@@ -154,7 +158,7 @@
                                             <input type="radio" 
                                                    name="field_{{ $field->id }}" 
                                                    value="{{ $option }}"
-                                                   class="w-5 h-5 text-{{ $form->color }}-600 focus:ring-{{ $form->color }}-500 focus:ring-2"
+                                                   class="w-5 h-5 text-{{ $formColor }}-600 focus:ring-{{ $formColor }}-500 focus:ring-2"
                                                    {{ $field->required ? 'required' : '' }}>
                                             <span class="text-gray-800 font-medium">{{ $option }}</span>
                                         </label>
@@ -169,7 +173,7 @@
                                             <input type="checkbox" 
                                                    name="field_{{ $field->id }}[]" 
                                                    value="{{ $option }}"
-                                                   class="w-5 h-5 text-{{ $form->color }}-600 focus:ring-{{ $form->color }}-500 focus:ring-2 rounded">
+                                                   class="w-5 h-5 text-{{ $formColor }}-600 focus:ring-{{ $formColor }}-500 focus:ring-2 rounded">
                                             <span class="text-gray-800 font-medium">{{ $option }}</span>
                                         </label>
                                     @endforeach
@@ -180,7 +184,7 @@
                                 <div class="relative">
                                     <input type="file" 
                                            name="field_{{ $field->id }}" 
-                                           class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $form->color }}-500 focus:border-transparent transition-all shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-{{ $form->color }}-50 file:text-{{ $form->color }}-700 hover:file:bg-{{ $form->color }}-100"
+                                           class="w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-{{ $formColor }}-500 focus:border-transparent transition-all shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-{{ $formColor }}-50 file:text-{{ $formColor }}-700 hover:file:bg-{{ $formColor }}-100"
                                            @if($field->file_settings && isset($field->file_settings['accepted_types']))
                                                accept="{{ $field->file_settings['accepted_types'] }}"
                                            @endif
@@ -220,7 +224,7 @@
                     
                     <button type="submit" 
                             id="submit-btn"
-                            class="w-full bg-gradient-to-r from-{{ $form->color }}-600 to-{{ $form->color }}-700 hover:from-{{ $form->color }}-700 hover:to-{{ $form->color }}-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            class="w-full bg-gradient-to-r from-{{ $formColor }}-600 to-{{ $formColor }}-700 hover:from-{{ $formColor }}-700 hover:to-{{ $formColor }}-800 text-white px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                             disabled>
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>

@@ -329,10 +329,14 @@
                                 label: field.label,
                                 required: field.required || false,
                                 options: field.options || null,
-                                fileSettings: field.file_settings || field.fileSettings || (field.type === 'file' ? {
-                                    allowedTypes: ['pdf', 'doc', 'docx', 'jpg', 'png'],
-                                    maxSize: 5
-                                } : null),
+                                fileSettings: field.type === 'file' ? {
+                                    allowedTypes: (field.file_settings?.allowedTypes || field.file_settings?.accepted_types || 'pdf, doc, docx, jpg, png')
+                                        .toString()
+                                        .split(',')
+                                        .map(type => type.trim())
+                                        .filter(Boolean),
+                                    maxSize: field.file_settings?.maxSize || field.file_settings?.max_size || 5
+                                } : null,
                                 order: field.order || fieldCounter
                             };
                             console.log(`Processed field ${index}:`, processed);

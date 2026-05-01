@@ -28,15 +28,21 @@ class FormController extends Controller
             'id' => 'nullable|exists:forms,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'color' => 'required|string',
+            'color' => 'nullable|string',
             'fields' => 'required|array',
             'fields.*.type' => 'required|string',
             'fields.*.label' => 'required|string',
             'fields.*.required' => 'boolean',
             'fields.*.options' => 'nullable|array',
             'fields.*.fileTypes' => 'nullable|string',
+            'fields.*.fileSettings' => 'nullable|array',
+            'fields.*.fileSettings.allowedTypes' => 'nullable|array',
+            'fields.*.fileSettings.allowedTypes.*' => 'nullable|string',
+            'fields.*.fileSettings.maxSize' => 'nullable|numeric',
             'fields.*.maxFileSize' => 'nullable|numeric',
         ]);
+
+        $color = $this->normalizeFormColor($request->color);
 
         // Create or update form
         if ($request->id) {
@@ -44,7 +50,7 @@ class FormController extends Controller
             $form->update([
                 'title' => $request->title,
                 'description' => $request->description,
-                'color' => $request->color,
+                'color' => $color,
             ]);
             
             // Delete existing fields
@@ -53,7 +59,7 @@ class FormController extends Controller
             $form = Form::create([
                 'title' => $request->title,
                 'description' => $request->description,
-                'color' => $request->color,
+                'color' => $color,
                 'status' => 'draft',
             ]);
         }
@@ -61,10 +67,19 @@ class FormController extends Controller
         // Create fields
         foreach ($request->fields as $index => $fieldData) {
             $fileSettings = null;
-            if ($fieldData['type'] === 'file' && isset($fieldData['fileTypes'])) {
+            if ($fieldData['type'] === 'file') {
+                $acceptedTypes = $fieldData['fileTypes']
+                    ?? $fieldData['fileSettings']['accepted_types']
+                    ?? (isset($fieldData['fileSettings']['allowedTypes'])
+                        ? implode(', ', array_filter($fieldData['fileSettings']['allowedTypes']))
+                        : null);
+
                 $fileSettings = [
-                    'accepted_types' => $fieldData['fileTypes'],
-                    'max_size' => $fieldData['maxFileSize'] ?? 5,
+                    'accepted_types' => $acceptedTypes ?: 'pdf, doc, docx, jpg, png',
+                    'max_size' => $fieldData['maxFileSize']
+                        ?? $fieldData['fileSettings']['max_size']
+                        ?? $fieldData['fileSettings']['maxSize']
+                        ?? 5,
                 ];
             }
 
@@ -151,8 +166,8 @@ class FormController extends Controller
             ->with('fields')
             ->firstOrFail();
 
-                // Check if form is accessible (not inactive unless admin)
-        if ($form->form_status === 'inactive' && !session()->has('admin_logged_in')) {
+        // Check if form is accessible (not inactive unless admin)
+        if ($form->form_status === 'inactive' && !session('admin_authenticated')) {
             return view('form.locked');
         }
 
@@ -201,7 +216,8 @@ class FormController extends Controller
 
         // Process each field
         foreach ($form->fields as $field) {
-            $fieldValue = $request->input('field_' . $field->id);
+            $fieldKey = 'field_' . $field->id;
+            $fieldValue = $request->input($fieldKey);
 
             // Validate required fields
             if ($field->required && empty($fieldValue) && $field->type !== 'file') {
@@ -211,9 +227,15 @@ class FormController extends Controller
                 ], 422);
             }
 
+            if ($field->required && $field->type === 'file' && !$request->hasFile($fieldKey)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "The field '{$field->label}' is required.",
+                ], 422);
+            }
+
             // Handle file uploads
-            if ($field->type === 'file' && $request->hasFile('field_' . $field->id)) {
-                $fieldKey = 'field_' . $field->id;
+            if ($field->type === 'file' && $request->hasFile($fieldKey)) {
                 $file = $request->file($fieldKey);
                 
                 // Validate file
@@ -226,6 +248,13 @@ class FormController extends Controller
                             'message' => "File size exceeds maximum allowed size of {$fileSettings['max_size']}MB for '{$field->label}'.",
                         ], 422);
                     }
+
+                    if (!$this->isAllowedUploadType($file, $fileSettings['accepted_types'] ?? null)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => "File type is not allowed for '{$field->label}'.",
+                        ], 422);
+                    }
                 }
 
                 $pendingFiles[] = [
@@ -233,7 +262,7 @@ class FormController extends Controller
                     'file' => $file,
                 ];
             } else {
-                $submissionData['field_' . $field->id] = $fieldValue;
+                $submissionData[$fieldKey] = $fieldValue;
             }
         }
 
@@ -300,5 +329,32 @@ class FormController extends Controller
             'success' => true,
             'message' => 'Form deleted successfully',
         ]);
+    }
+
+    protected function isAllowedUploadType($file, ?string $acceptedTypes): bool
+    {
+        if (!$acceptedTypes) {
+            return true;
+        }
+
+        $allowedExtensions = collect(explode(',', $acceptedTypes))
+            ->map(fn ($type) => strtolower(trim($type)))
+            ->map(fn ($type) => ltrim($type, '.'))
+            ->filter(fn ($type) => $type !== '' && !str_contains($type, '/'))
+            ->values();
+
+        if ($allowedExtensions->isEmpty()) {
+            return true;
+        }
+
+        return $allowedExtensions->contains(strtolower($file->getClientOriginalExtension()));
+    }
+
+    protected function normalizeFormColor(?string $color): string
+    {
+        $color = strtolower(trim((string) $color));
+        $allowedColors = ['blue', 'green', 'purple', 'red', 'yellow', 'indigo'];
+
+        return in_array($color, $allowedColors, true) ? $color : 'blue';
     }
 }
