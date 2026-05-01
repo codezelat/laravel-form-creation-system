@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -167,7 +168,7 @@ class FormSubmissionsExport implements
      */
     public function styles(Worksheet $sheet)
     {
-        $lastColumn = chr(65 + count($this->headings) - 1); // Convert to Excel column letter
+        $lastColumn = $this->getColumnLetter(count($this->headings) - 1);
         $totalRows = $this->collection()->count() + 1; // +1 for header
 
         // Style header row
@@ -229,10 +230,8 @@ class FormSubmissionsExport implements
      */
     public function title(): string
     {
-        // Excel sheet names can't be longer than 31 characters
-        $title = substr($this->form->title, 0, 31);
-        // Remove invalid characters
-        $title = preg_replace('/[\\\\\/\*\?\[\]]/', '', $title);
+        $title = $this->sanitizeWorksheetTitle($this->form->title);
+
         return $title ?: 'Submissions';
     }
 
@@ -283,6 +282,21 @@ class FormSubmissionsExport implements
      */
     protected function getColumnLetter($index): string
     {
-        return chr(65 + $index);
+        return Coordinate::stringFromColumnIndex($index + 1);
+    }
+
+    protected function sanitizeWorksheetTitle(?string $title): string
+    {
+        $title = $title ?? '';
+        $title = preg_replace('/[\x00-\x1F\x7F]/u', '', $title) ?? '';
+        $title = preg_replace('/[:\\\\\/\?\*\[\]]/u', '', $title) ?? '';
+        $title = trim($title, "'");
+        $title = trim($title);
+
+        if ($title === '') {
+            return '';
+        }
+
+        return mb_substr($title, 0, 31);
     }
 }
