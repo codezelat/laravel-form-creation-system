@@ -52,7 +52,7 @@
     
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Form Container -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 mb-8 sm:mb-12">
+        <div id="form-container" class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 mb-8 sm:mb-12">
             <!-- Form Header with Brand -->
             <div class="p-8 sm:p-10 border-b-4 border-{{ $formColor }}-500 bg-gradient-to-r from-{{ $formColor }}-50 to-white">
                 <div class="flex items-start justify-between">
@@ -338,17 +338,6 @@
                 if (data.success) {
                     successMessage.classList.remove('hidden');
                     form.reset();
-                    
-                    // Scroll to top to show success message
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    
-                    // Update button to show success
-                    submitBtnText.textContent = 'Submitted Successfully!';
-                    submitBtn.classList.remove('opacity-75');
-                    submitBtn.classList.add('bg-green-600', 'hover:bg-green-700');
-                    
-                    // Reset form and Turnstile after successful submission
-                    form.reset();
                     turnstileToken = null;
                     
                     // Reset Turnstile widget
@@ -356,18 +345,18 @@
                         turnstile.reset();
                     }
                     
-                    // Reset button after 5 seconds
+                    
+                    // Hide the form container (fields, buttons, etc.)
+                    const formContainer = document.getElementById('form-container');
+                    formContainer.style.opacity = '0';
+                    formContainer.style.transition = 'opacity 0.5s ease-out';
+                    
                     setTimeout(() => {
-                        submitBtn.disabled = true; // Will be re-enabled when Turnstile is completed again
-                        submitBtnText.textContent = 'Submit Form';
-                        submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700', 'cursor-not-allowed');
-                        successMessage.classList.add('hidden');
-                        
-                        // Reset security status
-                        const securityStatus = document.getElementById('security-status');
-                        securityStatus.textContent = 'Please complete the security verification above';
-                        securityStatus.className = 'mb-2 text-gray-500';
-                    }, 5000);
+                        formContainer.style.display = 'none';
+                    }, 500);
+                    
+                    // Scroll to top to show success message
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
                     throw new Error(data.message || 'Submission failed. Please try again.');
                 }
